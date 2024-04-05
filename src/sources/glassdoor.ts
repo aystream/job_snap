@@ -1,32 +1,44 @@
-import { SourceHandler } from './source-handler';
-import { clearUrl, hourRateToYear } from '../utils/tools';
+import { SourceHandler } from "./source-handler";
+import { clearUrl, hourRateToYear } from "../utils/tools";
 
 const salaryRegExp = /\$(?<amount>\d+)/;
 
 export class GlassDoorSourceHandler implements SourceHandler {
   get code(): string {
-    return 'glassdoor';
+    return "glassdoor";
   }
 
   findCompanyName(): string {
     const node = this.companyNameNode;
     if (node === null) {
-      return '';
+      return "";
     }
-    return node.textContent ?? '';
+    return node.textContent ?? "";
   }
 
   findCompanyLink(): string {
     const node = this.companyLinkNode;
     if (node === null) {
-      return '';
+      return "";
     }
-    return node.href ?? '';
+    return node.href ?? "";
   }
 
   findJobTitle(): string {
     const node = this.jobDescriptionNode;
-    return node?.textContent ?? '';
+    return node?.textContent ?? "";
+  }
+
+  findJobDescription(): string {
+    return "";
+  }
+
+  findLocation(): string {
+    return "";
+  }
+
+  findTypeJob(): string {
+    return "";
   }
 
   findJobLink(): string {
@@ -34,24 +46,24 @@ export class GlassDoorSourceHandler implements SourceHandler {
     if (cardNode === null) {
       return window.location.href;
     }
-    return cardNode.href ?? '';
+    return cardNode.href ?? "";
   }
 
   findRangeStart(): string {
     const salaryNode = this.salaryRangeNodes;
     if (salaryNode.length === 0) {
-      return '';
+      return "";
     }
-    const salaryFromContent = salaryNode[0].textContent ?? '';
+    const salaryFromContent = salaryNode[0].textContent ?? "";
     const salaryMatch = salaryFromContent.match(salaryRegExp);
     if (salaryMatch === null) {
-      return '';
+      return "";
     }
     const amount = parseFloat(salaryMatch.groups!.amount);
     if (Number.isNaN(amount)) {
       return ``;
     }
-    if (salaryFromContent.endsWith('K')) {
+    if (salaryFromContent.endsWith("K")) {
       return `=${amount * 1000}`;
     }
     return hourRateToYear(amount);
@@ -60,25 +72,27 @@ export class GlassDoorSourceHandler implements SourceHandler {
   findRangeEnd(): string {
     const salaryNode = this.salaryRangeNodes;
     if (salaryNode.length <= 1) {
-      return '';
+      return "";
     }
-    const salaryFromContent = salaryNode[1].textContent ?? '';
+    const salaryFromContent = salaryNode[1].textContent ?? "";
     const salaryMatch = salaryFromContent.match(salaryRegExp);
     if (salaryMatch === null) {
-      return '';
+      return "";
     }
     const amount = parseFloat(salaryMatch.groups!.amount);
     if (Number.isNaN(amount)) {
       return ``;
     }
-    if (salaryFromContent.endsWith('K')) {
+    if (salaryFromContent.endsWith("K")) {
       return `=${amount * 1000}`;
     }
     return hourRateToYear(amount);
   }
 
   get companyWrapperNode(): HTMLElement | null {
-    return document.querySelector('[class*="JobDetails_jobDetailsHeaderWrapper__"]');
+    return document.querySelector(
+      '[class*="JobDetails_jobDetailsHeaderWrapper__"]'
+    );
   }
 
   get companyLinkNode(): HTMLLinkElement | null {
@@ -86,7 +100,9 @@ export class GlassDoorSourceHandler implements SourceHandler {
     if (wrapper === null) {
       return null;
     }
-    return wrapper.querySelector('[class*="EmployerProfile_profileContainer__"]');
+    return wrapper.querySelector(
+      '[class*="EmployerProfile_profileContainer__"]'
+    );
   }
 
   get companyNameNode(): HTMLSpanElement | null {
@@ -110,11 +126,15 @@ export class GlassDoorSourceHandler implements SourceHandler {
     if (wrapper === null) {
       return [];
     }
-    return Array.from(wrapper.querySelectorAll('[class*="SalaryEstimate_rangeEstimate"]'));
+    return Array.from(
+      wrapper.querySelectorAll('[class*="SalaryEstimate_rangeEstimate"]')
+    );
   }
 
   get selectedJobCardNode(): HTMLElement | null {
-    return document.querySelector('[class*="JobCard_jobCardWrapper"][class*="JobCard_selected"]');
+    return document.querySelector(
+      '[class*="JobCard_jobCardWrapper"][class*="JobCard_selected"]'
+    );
   }
 
   get selectedJobCardLinkNode(): HTMLLinkElement | null {

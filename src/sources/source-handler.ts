@@ -1,15 +1,21 @@
 export interface SourceHandler {
   get code(): string;
 
-  findCompanyName() : string;
+  findCompanyName(): string;
 
-  findCompanyLink() : string;
+  findCompanyLink(): string;
 
-  findJobTitle() : string;
+  findJobTitle(): string;
 
-  findJobLink() : string;
+  findJobDescription(): string;
 
-  findRangeStart() : string;
+  findLocation(): string;
 
-  findRangeEnd() : string;
+  findTypeJob(): string;
+
+  findJobLink(): string;
+
+  findRangeStart(): string;
+
+  findRangeEnd(): string;
 }

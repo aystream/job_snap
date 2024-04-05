@@ -1,12 +1,12 @@
-import { registeredHandlers } from '../sources/handlers-registrar';
-import { SourceHandler } from '../sources/source-handler';
+import { registeredHandlers } from "../sources/handlers-registrar";
+import { SourceHandler } from "../sources/source-handler";
 
 export const holidays = 30;
 export const workingHours = 8;
 export const workingHoursInTheYear = 2080;
-export const mainKey = 'e';
+export const mainKey = "e";
 
-export let domain = '';
+export let domain = "";
 
 export let logResult = false;
 

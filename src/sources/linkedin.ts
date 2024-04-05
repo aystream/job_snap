@@ -1,10 +1,9 @@
-import { clearUrl, hourRateToYear } from '../utils/tools';
-import { holidays, workingHours, workingHoursInTheYear } from "../utils/configuration";
+import { clearUrl, hourRateToYear } from "../utils/tools";
 import { SourceHandler } from "./source-handler";
 
-export type LinkedInSalaryPerHour = 'hr';
+export type LinkedInSalaryPerHour = "hr";
 
-export type LinkedInSalaryPerYear = 'yr';
+export type LinkedInSalaryPerYear = "yr";
 
 export type LinkedInSalaryType = LinkedInSalaryPerHour | LinkedInSalaryPerYear;
 
@@ -12,32 +11,48 @@ export type LinkedInSalaryRangeFrom = number;
 
 export type LinkedInSalaryRangeTo = number;
 
-export type LinkedInSalaryDetails = [LinkedInSalaryType, LinkedInSalaryRangeFrom, LinkedInSalaryRangeTo | null];
+export type LinkedInSalaryDetails = [
+  LinkedInSalaryType,
+  LinkedInSalaryRangeFrom,
+  LinkedInSalaryRangeTo | null
+];
 
 const jobPrefixRegExp = /^\s*\W*/;
 const jobPostfixRegExp = /\s*\W*$/;
 const salaryRegExp = /(\$[0-9,]+)(\/(yr|hr))(\s*-\s*\$[0-9,]+)?/g;
 
-const salaryPerHour: LinkedInSalaryPerHour = 'hr';
-const salaryPerYear: LinkedInSalaryPerYear = 'yr';
+const salaryPerHour: LinkedInSalaryPerHour = "hr";
+const salaryPerYear: LinkedInSalaryPerYear = "yr";
 
 export class LinkedInSourceHandler implements SourceHandler {
   get code(): string {
-    return 'linkedin';
+    return "linkedin";
   }
 
   findCompanyName(): string {
-    return this.companyNode?.textContent ?? '';
+    return this.companyNode?.textContent ?? "";
   }
 
   findCompanyLink(): string {
-    return this.companyNode?.href ?? '';
+    return this.companyNode?.href ?? "";
   }
 
   findJobTitle(): string {
-    return (this.jobNode?.textContent ?? '')
-      .replace(jobPrefixRegExp, '')
-      .replace(jobPostfixRegExp, '');
+    return (this.jobNode?.textContent ?? "")
+      .replace(jobPrefixRegExp, "")
+      .replace(jobPostfixRegExp, "");
+  }
+
+  findJobDescription(): string {
+    return this.jobDescriptionNode?.textContent ?? "Description not found";
+  }
+
+  findLocation(): string {
+    return this.locationDescription;
+  }
+
+  findTypeJob(): string {
+    return this.typeJobDescription;
   }
 
   findJobLink(): string {
@@ -46,9 +61,9 @@ export class LinkedInSourceHandler implements SourceHandler {
     }
 
     const node = this.jobNode as HTMLLinkElement | null;
-    const url = node?.href ?? '';
+    const url = node?.href ?? "";
     if (url.length === 0) {
-      return '';
+      return "";
     }
     return clearUrl(url);
   }
@@ -56,7 +71,7 @@ export class LinkedInSourceHandler implements SourceHandler {
   findRangeStart(): string {
     const details = this.salaryDetails;
     if (details === null) {
-      return '';
+      return "";
     }
     const salaryType = details[0];
     const rangeFrom = details[1];
@@ -66,19 +81,19 @@ export class LinkedInSourceHandler implements SourceHandler {
     } else if (salaryType === salaryPerHour) {
       return hourRateToYear(rangeFrom);
     }
-    return '';
+    return "";
   }
 
   findRangeEnd(): string {
     const details = this.salaryDetails;
     if (details === null) {
-      return '';
+      return "";
     }
     const salaryType = details[0];
     const rangeFrom = details[2];
 
     if (rangeFrom === null) {
-      return '';
+      return "";
     }
 
     if (salaryType === salaryPerYear) {
@@ -86,31 +101,74 @@ export class LinkedInSourceHandler implements SourceHandler {
     } else if (salaryType === salaryPerHour) {
       return hourRateToYear(rangeFrom);
     }
-    return '';
+    return "";
   }
 
   private get isJobPageLink(): boolean {
-    return window.location.href.includes('/jobs/view/');
+    return window.location.href.includes("/jobs/view/");
   }
 
   private get companyNode(): HTMLLinkElement | null {
     if (this.isJobPageLink) {
-      return document.querySelector('.job-details-jobs-unified-top-card__primary-description-without-tagline .app-aware-link');
+      return document.querySelector(
+        ".job-details-jobs-unified-top-card__primary-description-without-tagline .app-aware-link"
+      );
     }
 
-    return document.querySelector('.job-details-jobs-unified-top-card__primary-description-container .app-aware-link');
+    return document.querySelector(
+      ".job-details-jobs-unified-top-card__primary-description-container .app-aware-link"
+    );
   }
 
   private get jobNode(): HTMLLinkElement | Element | null {
-    const jobParentNode = document.querySelector('.job-details-jobs-unified-top-card__job-title');
+    const jobParentNode = document.querySelector(
+      ".job-details-jobs-unified-top-card__job-title"
+    );
     if (this.isJobPageLink) {
       return jobParentNode;
     }
-    return jobParentNode?.querySelector('a') ?? null;
+    return jobParentNode?.querySelector("a") ?? null;
+  }
+
+  private get jobDescriptionNode(): HTMLLinkElement | Element | null {
+    return document.querySelector(
+      ".jobs-description-content__text"
+    ) as HTMLElement | null;
+  }
+
+  private get locationDescription(): string {
+    const locationElement = document.querySelector(
+      ".job-details-jobs-unified-top-card__primary-description-without-tagline"
+    ) as HTMLLinkElement | null;
+    if (!locationElement) return "Location not found";
+
+    // Extracting the complete text content of the container element
+    const fullDescriptionText = locationElement.innerText.trim();
+    // Splitting the text content based on the "·" delimiter to isolate different parts
+    const parts = fullDescriptionText.split("·");
+
+    // Assuming the location is always the second part after splitting
+    if (parts.length >= 3) {
+      const locationPart = parts[1].trim();
+      // Further cleaning if necessary
+      return locationPart;
+    }
+    return "Location not found";
+  }
+
+  private get typeJobDescription(): string {
+    const jobTypeElements = document.querySelectorAll(
+      ".job-details-jobs-unified-top-card__job-insight--highlight span.ui-label span[aria-hidden=\"true\"]"
+    );
+    return Array.from(jobTypeElements)
+      .map((element) => element.textContent)
+      .join(", ");
   }
 
   private get salaryDetails(): LinkedInSalaryDetails | null {
-    const elements = document.querySelectorAll('.job-details-jobs-unified-top-card__job-insight');
+    const elements = document.querySelectorAll(
+      ".job-details-jobs-unified-top-card__job-insight"
+    );
     let result: LinkedInSalaryDetails | null = null;
 
     const searchInNode = (node: Element | ChildNode) => {
@@ -120,16 +178,24 @@ export class LinkedInSourceHandler implements SourceHandler {
 
       if (node.nodeType === Node.TEXT_NODE) {
         let match;
-        while ((match = salaryRegExp.exec(node.nodeValue ?? '')) !== null) {
+        while ((match = salaryRegExp.exec(node.nodeValue ?? "")) !== null) {
           let salaryType: LinkedInSalaryType | null = null;
           if (match[3] === salaryPerHour || match[3] === salaryPerYear) {
             salaryType = match[3] as LinkedInSalaryType;
           }
-          const firstAmount = parseFloat(match[1].replace(/\$/g, '').replace(/,/g, ''));
+          const firstAmount = parseFloat(
+            match[1].replace(/\$/g, "").replace(/,/g, "")
+          );
           let secondAmount = null;
 
           if (match[4]) {
-            secondAmount = parseFloat(match[4].replace(/\$/g, '').replace(/,/g, '').replace(/-/g, '').trim());
+            secondAmount = parseFloat(
+              match[4]
+                .replace(/\$/g, "")
+                .replace(/,/g, "")
+                .replace(/-/g, "")
+                .trim()
+            );
           }
 
           if (secondAmount && salaryType !== null) {

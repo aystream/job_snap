@@ -1,32 +1,44 @@
-import { SourceHandler } from './source-handler';
-import { clearUrl } from '../utils/tools';
+import { SourceHandler } from "./source-handler";
+import { clearUrl } from "../utils/tools";
 
 const salaryRegExp = /\$(?<from>\d+)K( - \$(?<to>\d+)K)?/;
 
 export class YCombinatorSourceHandler implements SourceHandler {
   get code(): string {
-    return 'workatastartup';
+    return "workatastartup";
   }
 
   findCompanyName(): string {
     const node = this.companyNode;
     if (node === null) {
-      return '';
+      return "";
     }
-    return node.textContent ?? '';
+    return node.textContent ?? "";
   }
 
   findCompanyLink(): string {
     const node = this.companyNode;
     if (node === null) {
-      return '';
+      return "";
     }
-    return clearUrl(node.href ?? '');
+    return clearUrl(node.href ?? "");
   }
 
   findJobTitle(): string {
     const node = this.jobDescriptionNode;
-    return node?.textContent ?? '';
+    return node?.textContent ?? "";
+  }
+
+  findJobDescription(): string {
+    return "";
+  }
+
+  findLocation(): string {
+    return "";
+  }
+
+  findTypeJob(): string {
+    return "";
   }
 
   findJobLink(): string {
@@ -36,11 +48,11 @@ export class YCombinatorSourceHandler implements SourceHandler {
   findRangeStart(): string {
     const salaryNode = this.salaryRangeNode;
     if (salaryNode === null) {
-      return '';
+      return "";
     }
-    const salaryMatch = (salaryNode.textContent ?? '').match(salaryRegExp);
+    const salaryMatch = (salaryNode.textContent ?? "").match(salaryRegExp);
     if (salaryMatch === null) {
-      return '';
+      return "";
     }
     const from = parseFloat(salaryMatch.groups!.from);
     if (Number.isNaN(from)) {
@@ -52,11 +64,11 @@ export class YCombinatorSourceHandler implements SourceHandler {
   findRangeEnd(): string {
     const salaryNode = this.salaryRangeNode;
     if (salaryNode === null) {
-      return '';
+      return "";
     }
-    const salaryMatch = (salaryNode.textContent ?? '').match(salaryRegExp);
+    const salaryMatch = (salaryNode.textContent ?? "").match(salaryRegExp);
     if (salaryMatch === null) {
-      return '';
+      return "";
     }
     const to = parseFloat(salaryMatch.groups!.to);
     if (Number.isNaN(to)) {
@@ -66,14 +78,20 @@ export class YCombinatorSourceHandler implements SourceHandler {
   }
 
   get companyNode(): HTMLLinkElement | null {
-    return document.querySelector('.company-details > nav > div > div:nth-child(3) > a');
+    return document.querySelector(
+      ".company-details > nav > div > div:nth-child(3) > a"
+    );
   }
 
   get jobDescriptionNode(): Element | null {
-    return document.querySelector('.company-details .company-title .company-name');
+    return document.querySelector(
+      ".company-details .company-title .company-name"
+    );
   }
 
   get salaryRangeNode(): Element | null {
-    return document.querySelector('.company-details .company-title .text-gray-500');
+    return document.querySelector(
+      ".company-details .company-title .text-gray-500"
+    );
   }
 }

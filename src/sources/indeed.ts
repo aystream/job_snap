@@ -1,5 +1,5 @@
-import { SourceHandler } from './source-handler';
-import { clearUrl, hourRateToYear } from '../utils/tools';
+import { SourceHandler } from "./source-handler";
+import { clearUrl, hourRateToYear } from "../utils/tools";
 
 const salaryToRegExp = /Up to \$(?<to>\d+[,.]?\d+)/;
 const salaryRangeRegExp = /\$(?<from>\d+[,.]?\d+) - \$(?<to>\d+[,.]?\d+)/;
@@ -9,21 +9,21 @@ type SalaryInfo = [number | null, number | null];
 
 export class IndeedSourceHandler implements SourceHandler {
   get code(): string {
-    return 'indeed';
+    return "indeed";
   }
 
   findCompanyName(): string {
     const node = this.companyNode;
     if (node === null) {
-      return '';
+      return "";
     }
-    return node.textContent ?? '';
+    return node.textContent ?? "";
   }
 
   findCompanyLink(): string {
     const node = this.companyNode;
     if (node === null) {
-      return '';
+      return "";
     }
     return clearUrl(node.href);
   }
@@ -31,9 +31,21 @@ export class IndeedSourceHandler implements SourceHandler {
   findJobTitle(): string {
     const node = this.jobNode;
     if (node === null) {
-      return '';
+      return "";
     }
-    return node.textContent ?? '';
+    return node.textContent ?? "";
+  }
+
+  findJobDescription(): string {
+    return "";
+  }
+
+  findLocation(): string {
+    return "";
+  }
+
+  findTypeJob(): string {
+    return "";
   }
 
   findJobLink(): string {
@@ -43,22 +55,22 @@ export class IndeedSourceHandler implements SourceHandler {
 
     const url = new URL(window.location.href);
     // https://www.indeed.com/jobs?q=Flutter&l=United+States&from=searchOnHP&vjk=becb8a06518916c4
-    const jobLink = url.searchParams.get('vjk');
+    const jobLink = url.searchParams.get("vjk");
     return `https://www.indeed.com/viewjob?jk=${jobLink}`;
   }
 
   findRangeStart(): string {
     const node = this.salaryNode;
     if (node === null) {
-      return '';
+      return "";
     }
-    const salaryContent = node.textContent ?? '';
+    const salaryContent = node.textContent ?? "";
     const salaryInfo = this.parseSalaryInfo(salaryContent);
 
     if (salaryInfo[0] === null) {
-      return '';
+      return "";
     }
-    if (salaryContent.includes('year')) {
+    if (salaryContent.includes("year")) {
       return `=${salaryInfo[0]}`;
     }
     return hourRateToYear(salaryInfo[0]);
@@ -67,26 +79,26 @@ export class IndeedSourceHandler implements SourceHandler {
   findRangeEnd(): string {
     const node = this.salaryNode;
     if (node === null) {
-      return '';
+      return "";
     }
-    const salaryContent = node.textContent ?? '';
+    const salaryContent = node.textContent ?? "";
     const salaryInfo = this.parseSalaryInfo(salaryContent);
 
     if (salaryInfo[1] === null) {
-      return '';
+      return "";
     }
-    if (salaryContent.includes('year')) {
+    if (salaryContent.includes("year")) {
       return `=${salaryInfo[1]}`;
     }
     return hourRateToYear(salaryInfo[1]);
   }
 
   private get companyNode(): HTMLLinkElement | null {
-    return document.querySelector('.jobsearch-CompanyInfoWithoutHeaderImage a');
+    return document.querySelector(".jobsearch-CompanyInfoWithoutHeaderImage a");
   }
 
   private get salaryNode(): HTMLSpanElement | null {
-    return document.querySelector('#salaryInfoAndJobType span');
+    return document.querySelector("#salaryInfoAndJobType span");
   }
 
   private parseSalaryInfo(content: string): SalaryInfo {
@@ -100,11 +112,11 @@ export class IndeedSourceHandler implements SourceHandler {
     if (match === null) {
       return [null, null];
     }
-    const rangeStart = match.groups?.from ?? '';
-    const rangeEnd = match.groups?.to ?? '';
+    const rangeStart = match.groups?.from ?? "";
+    const rangeEnd = match.groups?.to ?? "";
 
-    const start = parseFloat(rangeStart.replace(',', ''));
-    const end = parseFloat(rangeEnd.replace(',', ''));
+    const start = parseFloat(rangeStart.replace(",", ""));
+    const end = parseFloat(rangeEnd.replace(",", ""));
 
     if (Number.isNaN(start) && Number.isNaN(end)) {
       return [null, null];
@@ -118,11 +130,10 @@ export class IndeedSourceHandler implements SourceHandler {
   }
 
   private get jobNode(): HTMLSpanElement | null {
-    return document.querySelector('.jobsearch-JobInfoHeader-title span');
+    return document.querySelector(".jobsearch-JobInfoHeader-title span");
   }
 
   private get isJobPage(): boolean {
-    return window.location.href.includes('viewjob');
+    return window.location.href.includes("viewjob");
   }
-
 }
